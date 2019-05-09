@@ -1,5 +1,7 @@
 # Specific files to not include
 praw.ini
+data/word_embeddings/word2vec_dsl_sentences_reddit_sentences_300_cbow_negative.kv
+data/word_embeddings/word2vec_dsl_sentences_reddit_sentences_300_cbow_negative.kv.vectors.npy
 data/training_data/
 
 # Created by https://www.gitignore.io/api/python,visualstudiocode
