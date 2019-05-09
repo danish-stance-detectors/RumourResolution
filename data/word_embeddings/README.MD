@@ -2,8 +2,8 @@
 
 This folder must contain two files for the tool to run:
 
-* preprocessed_text_lexicon_sentiment_reddit_most_frequent100_bow_pos_word2vec300_train.csv
-* preprocessed_text_lexicon_sentiment_reddit_most_frequent100_bow_pos_word2vec300_test.csv
+* word2vec_dsl_sentences_reddit_sentences_300_cbow_negative.kv
+* word2vec_dsl_sentences_reddit_sentences_300_cbow_negative.kv.vectors.npy
 
 They can be obtained [here](https://figshare.com/articles/Danish_DSL_and_Reddit_word2vec_word_embeddings/8099927).
 
