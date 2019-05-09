@@ -1,4 +1,4 @@
-# Reddit Veracity Classification
+# Rumour Veracity Resolution for Reddit
 
 This is a tool which can guess whether a rumourous reddit submission in danish is true or false.
 
