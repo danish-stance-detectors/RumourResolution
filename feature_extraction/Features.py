@@ -78,7 +78,6 @@ class FeatureExtractor:
         # **(Normalized) count features**
         txt_len = self.normalize(len(text), 'txt_len') if len(text) > 0 else 0
         url_count = self.normalize(tokens.count('urlurlurl'), 'url_count')
-        quote_count = self.normalize(tokens.count('refrefref'), 'quote_count')
         # longest sequence of capital letters, default empty for 0 length
         cap_sequence_max_len = len(max(re.findall(r"[A-ZÆØÅ]+", text), key=len, default=''))
         cap_sequence_max_len = self.normalize(cap_sequence_max_len, 'cap_sequence_max_len')
@@ -95,7 +94,7 @@ class FeatureExtractor:
             tokens_len = self.normalize(len(tokens), 'tokens_len')
             avg_word_len_true = sum([len(word) for word in tokens]) / len(tokens)
             avg_word_len = self.normalize(avg_word_len_true, 'avg_word_len')
-        return [period, e_mark, q_mark, hasTripDot, url_count, quote_count, tripDotCount, q_mark_count,
+        return [period, e_mark, q_mark, hasTripDot, url_count, tripDotCount, q_mark_count,
                 e_mark_count, cap_ratio, txt_len, tokens_len, avg_word_len, cap_sequence_max_len]
 
     def special_words_in_text(self, tokens, text):

@@ -47,7 +47,7 @@ def main(argv):
             'text': True,
             'lexicon' : False,
             'sentiment' : True,
-            'reddit' : True,
+            'reddit' : False,
             'most_freq' : False,
             'bow' : False,
             'pos' : False,
@@ -64,6 +64,14 @@ def main(argv):
         
         # dump(clf, './models/logistic_regression.joblib')
 
+        # loads bow used for model training and injects it into dataset
+        if features['bow']:
+            train_bow = []
+            with open('./data/annotated_bow.txt', 'r', encoding='utf8') as file:
+                for line in file.readlines():
+                    train_bow.append(line)
+            dataset.bow = train_bow
+        
         clf = load(args.model)
 
         extractor = FeatureExtractor(dataset)
@@ -79,7 +87,9 @@ def main(argv):
                                                    True) # is live, to avoid annotations
         
         flattened_vectors = []
-
+        print(len(vectors[0][0]))
+        # print(len(vectors[0][1]))
+        print(len(vectors[0][2]))
         for vec in vectors:
             flat_vec = []
             for group in vec:
@@ -99,6 +109,9 @@ def main(argv):
         }
 
         print("Crowd stance ordered by comment time:\n")
+        # for i in range(len(stance_predicts)):
+        #     print(sub['comments'][i]['text'])
+        #     print("was classified as {}".format(num_to_stance[stance_predicts[i]]))
         print([num_to_stance[x] for x in stance_predicts])
 
         hmm_data, _ = data_loader.get_hmm_data()
@@ -114,7 +127,7 @@ def main(argv):
         else:
             is_true = 'false'
         
-        print("It seems the crows stance thinks submission '{}' is {}".format(sub['title'], is_true))
+        print("It seems the crowds stance thinks submission '{}' is {}".format(sub['title'], is_true))
 
 if __name__ == "__main__":
     main(sys.argv[1:])
