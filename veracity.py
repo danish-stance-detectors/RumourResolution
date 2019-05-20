@@ -18,10 +18,6 @@ from joblib import dump, load
 import reddit_fetcher
 import data_loader
 
-flatten = lambda l: [item for sublist in l for item in sublist]
-
-test_data_file = './data/training_data/preprocessed_text_lexicon_sentiment_reddit_most_frequent100_bow_pos_word2vec300_test.csv'
-
 def main(argv):
     parser = argparse.ArgumentParser(description='Preprocessing of data files for stance classification')
 
@@ -54,16 +50,6 @@ def main(argv):
             'wembs' : True 
         }
 
-        ## Used to train new models
-        # X, y = data_loader.read_stance_data(cols_to_take=['text', 'sentiment', 'reddit', 'word2vec'])
-        # X_test, y_test = data_loader.read_stance_data(file_name=test_data_file, cols_to_take=['text', 'sentiment', 'reddit', 'word2vec'])
-        # X.extend(X_test)
-        # y.extend(y_test)
-
-        # clf = LogisticRegression().fit(X, y)
-        
-        # dump(clf, './models/logistic_regression.joblib')
-
         # loads bow used for model training and injects it into dataset
         if features['bow']:
             train_bow = []
@@ -87,9 +73,6 @@ def main(argv):
                                                    True) # is live, to avoid annotations
         
         flattened_vectors = []
-        print(len(vectors[0][0]))
-        # print(len(vectors[0][1]))
-        print(len(vectors[0][2]))
         for vec in vectors:
             flat_vec = []
             for group in vec:
@@ -109,16 +92,8 @@ def main(argv):
         }
 
         print("Crowd stance ordered by comment time:\n")
-        # for i in range(len(stance_predicts)):
-        #     print(sub['comments'][i]['text'])
-        #     print("was classified as {}".format(num_to_stance[stance_predicts[i]]))
         print([num_to_stance[x] for x in stance_predicts])
-
-        # hmm_data, _ = data_loader.get_hmm_data()
-        # y = [x[0] for x in hmm_data]
-        # X = [x[1] for x in hmm_data]
-
-        hmm_clf = load('./models/hmm_1_branch.joblib') #HMM(1).fit(X, y)
+        hmm_clf = load('./models/hmm_1_branch.joblib') 
         rumour_veracity = hmm_clf.predict([stance_predicts])[0]
 
         is_true = None
