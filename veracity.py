@@ -114,11 +114,11 @@ def main(argv):
         #     print("was classified as {}".format(num_to_stance[stance_predicts[i]]))
         print([num_to_stance[x] for x in stance_predicts])
 
-        hmm_data, _ = data_loader.get_hmm_data()
-        y = [x[0] for x in hmm_data]
-        X = [x[1] for x in hmm_data]
+        # hmm_data, _ = data_loader.get_hmm_data()
+        # y = [x[0] for x in hmm_data]
+        # X = [x[1] for x in hmm_data]
 
-        hmm_clf = HMM(1).fit(X, y)
+        hmm_clf = load('./models/hmm_1_branch.joblib') #HMM(1).fit(X, y)
         rumour_veracity = hmm_clf.predict([stance_predicts])[0]
 
         is_true = None
