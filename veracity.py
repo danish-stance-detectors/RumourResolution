@@ -24,85 +24,88 @@ def main(argv):
     parser.add_argument('-s_id', '--submission_id', help='Input reddit submission id')
     parser.add_argument('-u', '--user', help='Input reddit user API key name')
     parser.add_argument('-m', '--model', default='./models/logistic_regression.joblib', help='Path to model to user')
+    parser.add_argument('-r', '--reddit', default=False, action='store_true', help='Enable Reddit integration')
+    parser.add_argument('-j', '--json_path', help='Path to JSON object for stance and veracity classification')
 
     args = parser.parse_args(argv)
 
-    if args.submission_id and args.user:
+    features = {
+        'text': True,
+        'lexicon': False,
+        'sentiment': True,
+        'reddit': False,
+        'most_freq': False,
+        'bow': False,
+        'pos': False,
+        'wembs': True
+    }
+
+    clf = load(args.model)
+    load_saved_word_embeddings(300, False)
+    dataset = RedditDataset()
+
+    # loads bow used for model training and injects it into dataset
+    if features['bow']:
+        train_bow = []
+        with open('./data/annotated_bow.txt', 'r', encoding='utf8') as file:
+            for line in file.readlines():
+                train_bow.append(line)
+        dataset.bow = train_bow
+
+    if args.reddit and args.submission_id and args.user:
         reddit = praw.Reddit(args.user)
-        dataset = RedditDataset()
-        
-        load_saved_word_embeddings(300, False)
-
         sub = reddit_fetcher.getredditsubmission(reddit, args.submission_id)
+    else:  # a JSON file is provided in args.json
+        with open(args.json, 'r', encoding='utf8') as jsonfile:
+            sub = json.load(jsonfile)
 
-        annotations = [RedditAnnotation(comment, live=True) for comment in sub['comments']]
-        for anno in annotations:
-            dataset.add_annotation(anno)
+    annotations = [RedditAnnotation(comment, live=True) for comment in sub['comments']]
+    for anno in annotations:
+        dataset.add_annotation(anno)
 
-        features = {
-            'text': True,
-            'lexicon' : False,
-            'sentiment' : True,
-            'reddit' : False,
-            'most_freq' : False,
-            'bow' : False,
-            'pos' : False,
-            'wembs' : True 
-        }
+    extractor = FeatureExtractor(dataset)
+    vectors = extractor.create_feature_vectors(annotations,
+                                               features['text'],
+                                               features['lexicon'],
+                                               features['sentiment'],
+                                               features['reddit'],
+                                               features['most_freq'],
+                                               features['bow'],
+                                               features['pos'],
+                                               features['wembs'],
+                                               True)  # is live, to avoid annotations
 
-        # loads bow used for model training and injects it into dataset
-        if features['bow']:
-            train_bow = []
-            with open('./data/annotated_bow.txt', 'r', encoding='utf8') as file:
-                for line in file.readlines():
-                    train_bow.append(line)
-            dataset.bow = train_bow
-        
-        clf = load(args.model)
+    flattened_vectors = []
+    for vec in vectors:
+        flat_vec = []
+        for group in vec:
+            if type(group) == list:
+                flat_vec.extend(group)
+            else:
+                flat_vec.append(group)
+        flattened_vectors.append(flat_vec)
 
-        extractor = FeatureExtractor(dataset)
-        vectors = extractor.create_feature_vectors(annotations, 
-                                                   features['text'], 
-                                                   features['lexicon'], 
-                                                   features['sentiment'], 
-                                                   features['reddit'], 
-                                                   features['most_freq'],
-                                                   features['bow'], 
-                                                   features['pos'], 
-                                                   features['wembs'],
-                                                   True) # is live, to avoid annotations
-        
-        flattened_vectors = []
-        for vec in vectors:
-            flat_vec = []
-            for group in vec:
-                if type(group) == list:
-                    flat_vec.extend(group)
-                else:
-                    flat_vec.append(group)
-            flattened_vectors.append(flat_vec)
-        
-        stance_predicts = clf.predict(flattened_vectors)
-        
-        num_to_stance = {
-            0 : 'Supporting',
-            1 : 'Denying',
-            2 : 'Querying',
-            3 : 'Commenting'
-        }
+    stance_predicts = clf.predict(flattened_vectors)
 
-        print("Crowd stance ordered by comment time:\n")
-        print([num_to_stance[x] for x in stance_predicts])
-        hmm_clf = load('./models/hmm_1_branch.joblib') 
-        rumour_veracity = hmm_clf.predict([stance_predicts])[0]
+    num_to_stance = {
+        0 : 'Supporting',
+        1 : 'Denying',
+        2 : 'Querying',
+        3 : 'Commenting'
+    }
 
-        is_true = None
-        if rumour_veracity:
-            is_true = 'true'
-        else:
-            is_true = 'false'
-        
-        print("It seems the crowds stance thinks submission '{}' is {}".format(sub['title'], is_true))
+    print("Crowd stance ordered by comment time:\n")
+    print([num_to_stance[x] for x in stance_predicts])
+    hmm_clf = load('./models/hmm_1_branch.joblib')
+    rumour_veracity = hmm_clf.predict([stance_predicts])[0]
+
+    is_true = None
+    if rumour_veracity:
+        is_true = 'true'
+    else:
+        is_true = 'false'
+
+    print("It seems the crowds stance thinks submission '{}' is {}".format(sub['title'], is_true))
 
 if __name__ == "__main__":
     main(sys.argv[1:])
