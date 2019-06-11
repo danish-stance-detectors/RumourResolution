@@ -23,7 +23,7 @@ def main(argv):
 
     parser.add_argument('-s_id', '--submission_id', help='Input reddit submission id')
     parser.add_argument('-u', '--user', help='Input reddit user API key name')
-    parser.add_argument('-m', '--model', default='./models/logistic_regression.joblib', help='Path to model to user')
+    parser.add_argument('-m', '--model', default='./models/svm_t_s_w2v.joblib', help='Path to model to user')
 
     args = parser.parse_args(argv)
 
@@ -93,7 +93,7 @@ def main(argv):
 
         print("Crowd stance ordered by comment time:\n")
         for i in range(len(stance_predicts)):
-            print("Post:\n{}\nLabel: {}\n".format(dataset.annotations[i].text, num_to_stance[stance_predicts[i]]))
+            print("-----\nPost:\n{}\nLabel: {}\n-----\n".format(annotations[i].text, num_to_stance[stance_predicts[i]]))
         # print([num_to_stance[x] for x in stance_predicts])
         hmm_clf = load('./models/hmm_1_branch.joblib') 
         rumour_veracity = hmm_clf.predict([stance_predicts])[0]
