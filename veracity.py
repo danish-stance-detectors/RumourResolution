@@ -92,7 +92,9 @@ def main(argv):
         }
 
         print("Crowd stance ordered by comment time:\n")
-        print([num_to_stance[x] for x in stance_predicts])
+        for i in range(len(stance_predicts)):
+            print("Post:\n{}\nLabel: {}\n".format(dataset.annotations[i].text, num_to_stance[stance_predicts[i]]))
+        # print([num_to_stance[x] for x in stance_predicts])
         hmm_clf = load('./models/hmm_1_branch.joblib') 
         rumour_veracity = hmm_clf.predict([stance_predicts])[0]
 
